@@ -39,6 +39,9 @@ class AsyncScanOrchestrator(ScanOrchestrator):
         # Replace FormID analyzer with async version when we have a db pool
         self._db_pool: AsyncDatabasePool | None = None
         self._async_formid_analyzer: AsyncFormIDAnalyzer | None = None
+        
+        # Lock for thread-safe access to shared state
+        self._state_lock = asyncio.Lock()
 
     async def __aenter__(self) -> "AsyncScanOrchestrator":
         """Async context manager entry."""
@@ -123,13 +126,22 @@ class AsyncScanOrchestrator(ScanOrchestrator):
         result = super().process_crash_log(crashlog_file)
 
         # If we have FormIDs to look up, use async version
-        if self._async_formid_analyzer and hasattr(self, "_last_formids"):
-            # Extract the report that was generated
-            _, original_report, fail_status, stats = result
+        if self._async_formid_analyzer:
+            formids_matches = []
+            crashlog_plugins = {}
+            original_report = []
+            fail_status = False
+            stats = Counter()
+            
+            async with self._state_lock:
+                # Safely check for shared state
+                if hasattr(self, "_last_formids") and hasattr(self, "_last_plugins"):
+                    # Extract the report that was generated
+                    _, original_report, fail_status, stats = result
 
-            # Re-process with async FormID lookups
-            formids_matches = getattr(self, "_last_formids", [])
-            crashlog_plugins = getattr(self, "_last_plugins", {})
+                    # Make copies of shared state to avoid race conditions
+                    formids_matches = list(getattr(self, "_last_formids", []))
+                    crashlog_plugins = dict(getattr(self, "_last_plugins", {}))
 
             if formids_matches and crashlog_plugins:
                 # Clear the FormID section from report and regenerate it async
