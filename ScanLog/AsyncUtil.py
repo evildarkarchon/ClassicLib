@@ -96,7 +96,7 @@ class AsyncDatabasePool:
         """Close a single connection with timeout."""
         try:
             await asyncio.wait_for(conn.close(), timeout=timeout)
-        except asyncio.TimeoutError:
+        except TimeoutError:
             logger.error(f"Timeout closing database connection after {timeout}s")
         except Exception as e:
             logger.error(f"Error closing database connection: {e}")
