@@ -144,6 +144,10 @@ class ThreadManager(QObject):
                 
             logger.info(f"Stopping thread: {thread_type.value}")
             
+            # Signal the worker to stop if it has a stop method
+            if managed_thread.worker and hasattr(managed_thread.worker, 'stop'):
+                managed_thread.worker.stop()
+            
             # Signal the thread to quit
             managed_thread.thread.quit()
             
