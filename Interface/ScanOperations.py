@@ -7,6 +7,8 @@ including crash logs and game files scanning functionality.
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from PySide6.QtCore import QThread
 from PySide6.QtWidgets import QMessageBox
 
@@ -14,11 +16,18 @@ from ClassicLib.Interface.ThreadManager import ThreadType
 from ClassicLib.Interface.Workers import CrashLogsScanWorker, GameFilesScanWorker
 from ClassicLib.Logger import logger
 
+if TYPE_CHECKING:
+    from PySide6.QtCore import QMutex
+    from PySide6.QtWidgets import QButtonGroup, QPushButton
+
+    from ClassicLib.Interface.Audio import AudioPlayer
+    from ClassicLib.Interface.ThreadManager import ThreadManager
+
 
 class ScanOperationsMixin:
     """
     Mixin class providing scan operation methods for the MainWindow.
-    
+
     This class requires the following attributes to be present in the class it's mixed into:
     - _scan_mutex: QMutex for thread safety
     - _running_scans: Set tracking running scan operations
@@ -31,6 +40,23 @@ class ScanOperationsMixin:
     - game_files_thread: QThread for game files scanning
     - game_files_worker: GameFilesScanWorker instance
     """
+
+    # Type stubs for attributes that must be provided by the mixing class
+    if TYPE_CHECKING:
+        _scan_mutex: QMutex
+        _running_scans: set[str]
+        thread_manager: ThreadManager
+        audio_player: AudioPlayer
+        scan_button_group: QButtonGroup
+        papyrus_button: QPushButton | None
+        crash_logs_thread: QThread | None
+        crash_logs_worker: CrashLogsScanWorker | None
+        game_files_thread: QThread | None
+        game_files_worker: GameFilesScanWorker | None
+
+        # Required methods that must be implemented by the mixing class
+        def start_papyrus_monitoring(self) -> None: ...
+        def stop_papyrus_monitoring(self) -> None: ...
 
     def crash_logs_scan(self) -> None:
         """
@@ -55,7 +81,7 @@ class ScanOperationsMixin:
             self._running_scans.add("crash_logs")
         finally:
             self._scan_mutex.unlock()
-            
+
         # Create thread and worker
         self.crash_logs_thread = QThread()
         self.crash_logs_worker = CrashLogsScanWorker()
@@ -103,7 +129,7 @@ class ScanOperationsMixin:
             self._running_scans.add("game_files")
         finally:
             self._scan_mutex.unlock()
-            
+
         # Create thread and worker
         self.game_files_thread = QThread()
         self.game_files_worker = GameFilesScanWorker()
@@ -182,14 +208,14 @@ class ScanOperationsMixin:
             None: This method does not return any value.
         """
         self.crash_logs_thread = None
-        
+
         # Thread-safe removal from running scans
         self._scan_mutex.lock()
         try:
             self._running_scans.discard("crash_logs")
         finally:
             self._scan_mutex.unlock()
-            
+
         self.enable_scan_buttons()  # noinspection PyUnresolvedReferences
 
     def game_files_scan_finished(self) -> None:
@@ -204,14 +230,14 @@ class ScanOperationsMixin:
             None
         """
         self.game_files_thread = None
-        
+
         # Thread-safe removal from running scans
         self._scan_mutex.lock()
         try:
             self._running_scans.discard("game_files")
         finally:
             self._scan_mutex.unlock()
-            
+
         self.enable_scan_buttons()
 
         # Check papyrus button state

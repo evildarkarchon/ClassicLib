@@ -8,7 +8,7 @@ in the main window interface.
 from __future__ import annotations
 
 from functools import partial
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Literal
 
 from PySide6.QtCore import Qt, QUrl
 from PySide6.QtGui import QDesktopServices
@@ -40,14 +40,51 @@ from ClassicLib.YamlSettingsCache import classic_settings, yaml_settings
 if TYPE_CHECKING:
     from collections.abc import Callable
 
+    from PySide6.QtWidgets import QButtonGroup, QLineEdit, QWidget
+
 
 class TabSetupMixin:
     """
     Mixin class providing tab setup functionality for the MainWindow.
-    
+
     This class contains methods for setting up the main tab, articles tab,
     and backups tab in the application interface.
     """
+
+    # Type stubs for attributes that must be provided by the mixing class
+    if TYPE_CHECKING:
+        main_tab: QWidget
+        articles_tab: QWidget
+        backups_tab: QWidget
+        mods_folder_edit: QLineEdit | None
+        scan_folder_edit: QLineEdit | None
+        scan_button_group: QButtonGroup
+        crash_logs_button: QPushButton | None
+        game_files_button: QPushButton | None
+        papyrus_button: QPushButton | None
+
+        # Required methods that must be implemented by the mixing class
+        def select_folder_mods(self) -> None: ...
+        def select_folder_scan(self) -> None: ...
+        def select_folder_ini(self) -> None: ...
+        def validate_scan_folder_text(self) -> None: ...
+        @staticmethod
+        def open_url(url: str) -> None: ...
+        def show_about(self) -> None: ...
+        def help_popup_main(self) -> None: ...
+        def open_settings(self) -> None: ...
+        def open_crash_logs_folder(self) -> None: ...
+        def update_popup_explicit(self) -> None: ...
+        def toggle_papyrus_worker(self) -> None: ...
+        def update_papyrus_button_style(self, monitoring: bool) -> None: ...
+        def crash_logs_scan(self) -> None: ...
+        def game_files_scan(self) -> None: ...
+        def open_backup_folder(self) -> None: ...
+        def check_existing_backups(self) -> None: ...
+        def create_checkbox(self, label_text: str, setting: str) -> QCheckBox: ...
+        def add_main_button(self, layout: QLayout, text: str, callback: Callable[[], None], tooltip: str = "") -> QPushButton: ...
+        def _create_button(self, text: str, tooltip: str, callback: Callable) -> QPushButton: ...
+        def add_backup_section(self, layout: QBoxLayout, title: str, backup_type: Literal["XSE", "RESHADE", "VULKAN", "ENB"]) -> None: ...
 
     # noinspection PyUnresolvedReferences
     def setup_main_tab(self) -> None:
@@ -276,7 +313,9 @@ class TabSetupMixin:
             yaml_settings(str, YAML.Settings, "CLASSIC_Settings.Update Source", "Both")
 
         # Connect the combo box change signal to save the setting
-        update_source_combo.currentTextChanged.connect(lambda text: yaml_settings(str, YAML.Settings, "CLASSIC_Settings.Update Source", text))
+        update_source_combo.currentTextChanged.connect(
+            lambda text: yaml_settings(str, YAML.Settings, "CLASSIC_Settings.Update Source", text)
+        )
 
         update_source_hbox.addWidget(update_source_label)
         update_source_hbox.addWidget(update_source_combo)

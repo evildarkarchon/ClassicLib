@@ -9,11 +9,11 @@ from __future__ import annotations
 
 import subprocess
 from pathlib import Path
-from typing import cast
+from typing import TYPE_CHECKING, cast
 
 from PySide6.QtCore import QUrl
 from PySide6.QtGui import QDesktopServices
-from PySide6.QtWidgets import QFileDialog, QMessageBox
+from PySide6.QtWidgets import QFileDialog, QLineEdit, QMessageBox
 
 from ClassicLib import GlobalRegistry
 from ClassicLib.Constants import YAML
@@ -29,6 +29,10 @@ class FolderManagementMixin:
     - scan_folder_edit: QLineEdit for custom scan folder path
     - mods_folder_edit: QLineEdit for mods folder path
     """
+
+    if TYPE_CHECKING:
+        scan_folder_edit: QLineEdit | None
+        mods_folder_edit: QLineEdit | None
 
     def select_folder_scan(self) -> None:
         """

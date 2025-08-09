@@ -6,6 +6,8 @@ This module contains a mixin class that handles update checking and notification
 
 from __future__ import annotations
 
+from typing import TYPE_CHECKING
+
 from PySide6.QtCore import QThread, QUrl
 from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import QMessageBox
@@ -16,11 +18,16 @@ from ClassicLib.Interface.Workers import UpdateCheckWorker
 from ClassicLib.Logger import logger
 from ClassicLib.YamlSettingsCache import yaml_settings
 
+if TYPE_CHECKING:
+    from PySide6.QtCore import QTimer
+
+    from ClassicLib.Interface.ThreadManager import ThreadManager
+
 
 class UpdateManagerMixin:
     """
     Mixin class providing update management functionality for the MainWindow.
-    
+
     This class requires the following attributes to be present in the class it's mixed into:
     - is_update_check_running: bool tracking if update check is in progress
     - update_check_timer: QTimer for scheduling update checks
@@ -28,6 +35,18 @@ class UpdateManagerMixin:
     - update_check_thread: QThread for update checking
     - update_check_worker: UpdateCheckWorker instance
     """
+
+    # Type stubs for attributes that must be provided by the mixing class
+    if TYPE_CHECKING:
+        is_update_check_running: bool
+        update_check_timer: QTimer
+        thread_manager: ThreadManager
+        update_check_thread: QThread | None
+        update_check_worker: UpdateCheckWorker | None
+
+        # Required methods that must be implemented by the mixing class
+        def perform_update_check(self) -> None: ...
+        def force_update_check(self) -> None: ...
 
     def update_popup(self) -> None:
         """
@@ -80,21 +99,21 @@ class UpdateManagerMixin:
 
         """
         self.update_check_timer.stop()
-        
+
         # Check if update check is already running
         if self.thread_manager.is_thread_running(ThreadType.UPDATE_CHECK):
             return  # Update check already in progress
-            
+
         # Create new thread and worker
         self.update_check_thread = QThread()
         self.update_check_worker = UpdateCheckWorker(explicit=False)
         self.update_check_worker.moveToThread(self.update_check_thread)
-        
+
         # Register with thread manager
         if not self.thread_manager.register_thread(ThreadType.UPDATE_CHECK, self.update_check_thread, self.update_check_worker):
             logger.error("Failed to register update check thread")
             return
-        
+
         # Connect signals
         self.update_check_thread.started.connect(self.update_check_worker.run)
         self.update_check_worker.updateAvailable.connect(self.show_update_result)
@@ -103,7 +122,7 @@ class UpdateManagerMixin:
         self.update_check_worker.finished.connect(self.update_check_worker.deleteLater)
         self.update_check_thread.finished.connect(self.update_check_thread.deleteLater)
         self.update_check_thread.finished.connect(self._update_check_finished)
-        
+
         # Start through thread manager
         self.thread_manager.start_thread(ThreadType.UPDATE_CHECK)
 
@@ -118,23 +137,23 @@ class UpdateManagerMixin:
         # Directly perform the update check without reading from settings
         self.is_update_check_running = True
         self.update_check_timer.stop()
-        
+
         # Check if update check is already running
         if self.thread_manager.is_thread_running(ThreadType.UPDATE_CHECK):
             QMessageBox.information(self, "Update Check", "An update check is already in progress.")
             return
-            
+
         # Create new thread and worker for explicit check
         self.update_check_thread = QThread()
         self.update_check_worker = UpdateCheckWorker(explicit=True)
         self.update_check_worker.moveToThread(self.update_check_thread)
-        
+
         # Register with thread manager
         if not self.thread_manager.register_thread(ThreadType.UPDATE_CHECK, self.update_check_thread, self.update_check_worker):
             logger.error("Failed to register update check thread")
             self.is_update_check_running = False
             return
-        
+
         # Connect signals
         self.update_check_thread.started.connect(self.update_check_worker.run)
         self.update_check_worker.updateAvailable.connect(self.show_update_result)
@@ -143,10 +162,10 @@ class UpdateManagerMixin:
         self.update_check_worker.finished.connect(self.update_check_worker.deleteLater)
         self.update_check_thread.finished.connect(self.update_check_thread.deleteLater)
         self.update_check_thread.finished.connect(self._update_check_finished)
-        
+
         # Start through thread manager
         self.thread_manager.start_thread(ThreadType.UPDATE_CHECK)
-        
+
     def _update_check_finished(self) -> None:
         """
         Cleanup method called when update check thread finishes.
