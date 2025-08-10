@@ -125,7 +125,6 @@ def create_checkbox(label_text: str, setting: str, style: str = CHECKBOX_STYLE) 
     checkbox.setStyleSheet(style)
     return checkbox
 
-
 def setup_folder_section(
     layout: QBoxLayout, title: str, box_name: str, browse_callback: Callable[[], None], tooltip: str = ""
 ) -> QLineEdit | None:
@@ -231,3 +230,31 @@ def add_bottom_button(layout: QLayout, text: str, callback: Callable[[], None], 
         button.setToolTip(tooltip)
     button.clicked.connect(callback)
     layout.addWidget(button)
+
+
+def _create_button(self, text: str, tooltip: str, callback: Callable) -> QPushButton:
+    """
+    Creates and configures a button with common styling and properties.
+
+    Args:
+        text: The button text
+        tooltip: The button tooltip
+        callback: Function to call when button is clicked
+
+    Returns:
+        Configured QPushButton instance
+    """
+    button: QPushButton = QPushButton(text)
+    button.setToolTip(tooltip)
+
+    # Connect appropriate signal based on whether it's a toggle button or regular
+    if isinstance(button, QPushButton) and button.isCheckable():
+        button.toggled.connect(callback)
+    else:
+        button.clicked.connect(callback)
+
+    # Apply common styling
+    button.setStyleSheet(BOTTOM_BUTTON_STYLE)
+    button.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
+
+    return button
