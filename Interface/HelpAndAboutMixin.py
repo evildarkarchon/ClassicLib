@@ -6,16 +6,11 @@ This module contains a mixin class that handles the "About" and "Help" dialogs.
 
 from __future__ import annotations
 
-from typing import TYPE_CHECKING
-
 from PySide6.QtWidgets import QMessageBox
 
 from ClassicLib.Constants import YAML
 from ClassicLib.Interface.Dialogs import CustomAboutDialog
 from ClassicLib.YamlSettingsCache import yaml_settings
-
-if TYPE_CHECKING:
-    pass
 
 
 class HelpAndAboutMixin:

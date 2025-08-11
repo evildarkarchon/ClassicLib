@@ -80,18 +80,18 @@ class AsyncDatabasePool:
         async with self._lock:
             connections_to_close = list(self.connections.values())
             self.connections.clear()
-        
+
         # Close connections outside the lock to prevent deadlock
         close_tasks = []
         for conn in connections_to_close:
             # Create task with timeout for each connection close
             task = asyncio.create_task(self._close_connection_with_timeout(conn))
             close_tasks.append(task)
-        
+
         # Wait for all connections to close (or timeout)
         if close_tasks:
             await asyncio.gather(*close_tasks, return_exceptions=True)
-    
+
     async def _close_connection_with_timeout(self, conn: aiosqlite.Connection, timeout: float = 5.0) -> None:
         """Close a single connection with timeout."""
         try:

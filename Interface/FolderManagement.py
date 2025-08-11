@@ -24,7 +24,7 @@ from ClassicLib.YamlSettingsCache import classic_settings, yaml_settings
 class FolderManagementMixin:
     """
     Mixin class providing folder management functionality for the MainWindow.
-    
+
     This class requires the following attributes to be present in the class it's mixed into:
     - scan_folder_edit: QLineEdit for custom scan folder path
     - mods_folder_edit: QLineEdit for mods folder path
@@ -224,7 +224,7 @@ class FolderManagementMixin:
         crash_logs_folder: Path = cast("Path", GlobalRegistry.get_local_dir()) / "Crash Logs"
         if not crash_logs_folder.is_dir():
             crash_logs_folder.mkdir(parents=True, exist_ok=True)
-            
+
         # noinspection PyUnresolvedReferences
         QDesktopServices.openUrl(QUrl.fromLocalFile(str(crash_logs_folder)))
 
@@ -232,13 +232,13 @@ class FolderManagementMixin:
     def _open_file_with_notepadpp(file_path: Path) -> None:
         """
         Opens a file with Notepad++ if available, otherwise falls back to system default.
-        
+
         Args:
             file_path: Path to the file to open
         """
         notepadpp_path = Path("C:/Program Files/Notepad++/notepad++.exe")
         file_url: QUrl = QUrl.fromLocalFile(str(file_path))
-        
+
         if notepadpp_path.exists():
             try:
                 subprocess.Popen([str(notepadpp_path), str(file_path)])

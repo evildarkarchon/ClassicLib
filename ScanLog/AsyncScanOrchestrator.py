@@ -39,7 +39,7 @@ class AsyncScanOrchestrator(ScanOrchestrator):
         # Replace FormID analyzer with async version when we have a db pool
         self._db_pool: AsyncDatabasePool | None = None
         self._async_formid_analyzer: AsyncFormIDAnalyzer | None = None
-        
+
         # Lock for thread-safe access to shared state
         self._state_lock = asyncio.Lock()
 
@@ -132,7 +132,7 @@ class AsyncScanOrchestrator(ScanOrchestrator):
             original_report = []
             fail_status = False
             stats = Counter()
-            
+
             async with self._state_lock:
                 # Safely check for shared state
                 if hasattr(self, "_last_formids") and hasattr(self, "_last_plugins"):

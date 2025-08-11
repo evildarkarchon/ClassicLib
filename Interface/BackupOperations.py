@@ -30,7 +30,7 @@ if TYPE_CHECKING:
 class BackupOperationsMixin:
     """
     Mixin class providing backup operations functionality for the MainWindow.
-    
+
     This class handles backup, restore, and removal operations for various
     game file categories (XSE, RESHADE, VULKAN, ENB).
     """

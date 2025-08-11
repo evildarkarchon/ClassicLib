@@ -289,7 +289,7 @@ async def check_log_errors_async(folder_path: Path | str) -> str:
 
                     log_lines = await read_file_async(log_file_path)
                     # Add line endings back for consistency with sync version
-                    log_lines = [line + '\n' for line in log_lines if line]
+                    log_lines = [line + "\n" for line in log_lines if line]
                 except ImportError:
                     # Fallback to sync read with async wrapper
                     loop = asyncio.get_event_loop()

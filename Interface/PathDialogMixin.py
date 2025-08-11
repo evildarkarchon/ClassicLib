@@ -47,6 +47,7 @@ class PathDialogMixin:
             # Store the path in the GlobalRegistry for access by other components
             GlobalRegistry.register(GlobalRegistry.Keys.GAME_PATH, game_path)
 
+
 def show_game_path_dialog_static() -> Path | None:
     """
     Shows a dialog for selecting the game installation path without requiring an instance.

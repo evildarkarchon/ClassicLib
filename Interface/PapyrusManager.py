@@ -1,11 +1,40 @@
+from __future__ import annotations
+
+from typing import TYPE_CHECKING
+
 from PySide6.QtCore import QThread
 
-from ClassicLib.Interface.ThreadManager import ThreadType, get_thread_manager
 from ClassicLib.Interface.Papyrus import PapyrusMonitorWorker
+from ClassicLib.Interface.PapyrusDialog import PapyrusMonitorDialog
+from ClassicLib.Interface.ThreadManager import ThreadType
 from ClassicLib.Logger import logger
+
+if TYPE_CHECKING:
+    from PySide6.QtWidgets import QPushButton
+
+    from ClassicLib.Interface.ThreadManager import ThreadManager
 
 
 class PapyrusManagerMixin:
+    """
+    Mixin class for managing Papyrus monitoring functionality.
+
+    This mixin requires the mixing class to provide:
+    - papyrus_button: QPushButton for toggling monitoring
+    - thread_manager: ThreadManager for managing worker threads
+    - papyrus_monitor_thread: Optional QThread for the monitoring thread
+    - papyrus_monitor_worker: Optional PapyrusMonitorWorker instance
+    - papyrus_monitor_dialog: Optional PapyrusMonitorDialog instance
+    """
+
+    # Type stubs for attributes that must be provided by the mixing class
+    if TYPE_CHECKING:
+        papyrus_button: QPushButton | None
+        thread_manager: ThreadManager
+        papyrus_monitor_thread: QThread | None
+        papyrus_monitor_worker: PapyrusMonitorWorker | None
+        papyrus_monitor_dialog: PapyrusMonitorDialog | None
+
     def toggle_papyrus_worker(self) -> None:
         """
         Toggles the state of the Papyrus worker based on the state of the `papyrus_button`.

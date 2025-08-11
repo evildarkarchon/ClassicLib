@@ -157,10 +157,10 @@ class PapyrusMonitorWorker(QObject):
             self._should_run_mutex.lock()
             should_continue = self._should_run
             self._should_run_mutex.unlock()
-            
+
             if not should_continue:
                 break
-                
+
             try:
                 message, count = papyrus_logging()
 

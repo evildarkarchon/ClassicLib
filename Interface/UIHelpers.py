@@ -119,12 +119,11 @@ def create_checkbox(label_text: str, setting: str, style: str = CHECKBOX_STYLE) 
     checkbox.setChecked(value)
 
     # Connect state change to settings update
-    checkbox.stateChanged.connect(
-        lambda state: yaml_settings(bool, YAML.Settings, f"CLASSIC_Settings.{setting}", bool(state))
-    )
+    checkbox.stateChanged.connect(lambda state: yaml_settings(bool, YAML.Settings, f"CLASSIC_Settings.{setting}", bool(state)))
 
     checkbox.setStyleSheet(style)
     return checkbox
+
 
 def setup_folder_section(
     layout: QBoxLayout, title: str, box_name: str, browse_callback: Callable[[], None], tooltip: str = ""
@@ -259,6 +258,7 @@ def _create_button(self, text: str, tooltip: str, callback: Callable) -> QPushBu
     button.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
 
     return button
+
 
 def open_url(url: str) -> None:
     """

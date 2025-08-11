@@ -141,26 +141,26 @@ class GameFilesScanWorker(QObject):
 class UpdateCheckWorker(QObject):
     """
     Worker class to handle update checking in a separate thread using asyncio.
-    
+
     This replaces the direct asyncio.run() calls that block the Qt event loop.
     """
-    
+
     # Signals
     finished: Signal = Signal()
     updateAvailable: Signal = Signal(bool)  # True if update available
     error: Signal = Signal(str)
-    
+
     def __init__(self, explicit: bool = False) -> None:
         """
         Initialize the update check worker.
-        
+
         Args:
             explicit: Whether this is an explicit user-initiated check
         """
         super().__init__()
         self.explicit = explicit
         self._loop: asyncio.AbstractEventLoop | None = None
-        
+
     @Slot()
     def run(self) -> None:
         """
@@ -171,18 +171,18 @@ class UpdateCheckWorker(QObject):
             # Create a new event loop for this thread
             self._loop = asyncio.new_event_loop()
             asyncio.set_event_loop(self._loop)
-            
+
             # Check if pre-release
             if GlobalRegistry.get(GlobalRegistry.Keys.IS_PRERELEASE):
                 if self.explicit:
                     self.error.emit("Software is in pre-release stage, update check skipped.")
                 self.finished.emit()
                 return
-                
+
             # Run the async update check
             result = self._loop.run_until_complete(self._async_check())
             self.updateAvailable.emit(not result)
-            
+
         except UpdateCheckError as e:
             self.error.emit(str(e))
         except (RuntimeError, OSError, ValueError) as e:
@@ -192,11 +192,11 @@ class UpdateCheckWorker(QObject):
             if self._loop:
                 self._loop.close()
             self.finished.emit()
-            
+
     async def _async_check(self) -> bool:
         """
         Perform the actual async update check.
-        
+
         Returns:
             bool: True if up to date, False if update available
         """
