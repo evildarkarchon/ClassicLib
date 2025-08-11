@@ -169,9 +169,16 @@ async def read_file_async(file_path: Path) -> list[str]:
         Raised if the file's content cannot be decoded using the specified encoding.
     """
     try:
-        async with aiofiles.open(file_path, encoding="utf-8", errors="ignore") as f:
-            content = await f.read()
-            return content.splitlines()
+        # Try to use async encoding detection if available
+        try:
+            from ClassicLib.AsyncUtil import read_lines_with_encoding_async
+
+            return await read_lines_with_encoding_async(file_path)
+        except ImportError:
+            # Fallback to UTF-8
+            async with aiofiles.open(file_path, encoding="utf-8", errors="ignore") as f:
+                content = await f.read()
+                return content.splitlines()
     except (OSError, UnicodeDecodeError) as e:
         logger.error(f"Error reading {file_path}: {e}")
         return []
