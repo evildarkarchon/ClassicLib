@@ -203,6 +203,36 @@ class FileIOCore:
             loop = asyncio.get_event_loop()
             await loop.run_in_executor(None, path.write_bytes, content)
 
+    async def append_file(self, path: Path | str, content: str) -> None:
+        """
+        Append string content to file.
+
+        Args:
+            path: Path to the file to append to
+            content: String content to append
+
+        Raises:
+            PermissionError: If file cannot be written
+        """
+        if not isinstance(path, Path):
+            path = Path(path)
+
+        # Ensure parent directory exists
+        path.parent.mkdir(parents=True, exist_ok=True)
+
+        if AIOFILES_AVAILABLE:
+            async with aiofiles.open(path, mode="a", encoding=self.default_encoding, errors=self.default_errors) as f:
+                await f.write(content)
+        else:
+            # Fallback to sync append in executor
+            loop = asyncio.get_event_loop()
+            
+            def append_sync():
+                with open(path, "a", encoding=self.default_encoding, errors=self.default_errors) as f:
+                    f.write(content)
+            
+            await loop.run_in_executor(None, append_sync)
+
     # ==========================================
     # Crash Log Specific Operations
     # ==========================================
@@ -335,22 +365,63 @@ class FileIOCore:
 
 def read_file_sync(path: Path | str) -> str:
     """Sync adapter for reading file contents."""
-    return asyncio.run(FileIOCore().read_file(path))
+    try:
+        # Try to get the current event loop
+        loop = asyncio.get_running_loop()
+        # We're in an async context, can't use asyncio.run
+        # Fall back to sync file reading
+        if not isinstance(path, Path):
+            path = Path(path)
+        return path.read_text(encoding="utf-8", errors="ignore")
+    except RuntimeError:
+        # No event loop, we can use asyncio.run
+        return asyncio.run(FileIOCore().read_file(path))
 
 
 def read_lines_sync(path: Path | str) -> list[str]:
     """Sync adapter for reading file lines."""
-    return asyncio.run(FileIOCore().read_lines(path))
+    try:
+        # Try to get the current event loop
+        loop = asyncio.get_running_loop()
+        # We're in an async context, can't use asyncio.run
+        # Fall back to sync file reading
+        if not isinstance(path, Path):
+            path = Path(path)
+        return path.read_text(encoding="utf-8", errors="ignore").splitlines()
+    except RuntimeError:
+        # No event loop, we can use asyncio.run
+        return asyncio.run(FileIOCore().read_lines(path))
 
 
 def read_bytes_sync(path: Path | str) -> bytes:
     """Sync adapter for reading file bytes."""
-    return asyncio.run(FileIOCore().read_bytes(path))
+    try:
+        # Try to get the current event loop
+        loop = asyncio.get_running_loop()
+        # We're in an async context, can't use asyncio.run
+        # Fall back to sync file reading
+        if not isinstance(path, Path):
+            path = Path(path)
+        return path.read_bytes()
+    except RuntimeError:
+        # No event loop, we can use asyncio.run
+        return asyncio.run(FileIOCore().read_bytes(path))
 
 
 def write_file_sync(path: Path | str, content: str) -> None:
     """Sync adapter for writing file contents."""
-    asyncio.run(FileIOCore().write_file(path, content))
+    try:
+        # Try to get the current event loop
+        loop = asyncio.get_running_loop()
+        # We're in an async context, can't use asyncio.run
+        # Fall back to sync file writing
+        if not isinstance(path, Path):
+            path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content, encoding="utf-8", errors="ignore")
+    except RuntimeError:
+        # No event loop, we can use asyncio.run
+        asyncio.run(FileIOCore().write_file(path, content))
 
 
 def write_lines_sync(path: Path | str, lines: list[str]) -> None:
@@ -371,3 +442,20 @@ def read_crash_log_sync(path: Path | str) -> list[str]:
 def write_crash_report_sync(path: Path | str, report_lines: list[str]) -> None:
     """Sync adapter for writing crash reports."""
     asyncio.run(FileIOCore().write_crash_report(path, report_lines))
+
+
+def append_file_sync(path: Path | str, content: str) -> None:
+    """Sync adapter for appending to files."""
+    try:
+        # Try to get the current event loop
+        loop = asyncio.get_running_loop()
+        # We're in an async context, can't use asyncio.run
+        # Fall back to sync file appending
+        if not isinstance(path, Path):
+            path = Path(path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        with open(path, "a", encoding="utf-8", errors="ignore") as f:
+            f.write(content)
+    except RuntimeError:
+        # No event loop, we can use asyncio.run
+        asyncio.run(FileIOCore().append_file(path, content))

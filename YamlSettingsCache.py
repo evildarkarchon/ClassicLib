@@ -1,4 +1,5 @@
 from functools import reduce
+from io import StringIO
 from pathlib import Path
 from typing import Any, ClassVar
 
@@ -6,9 +7,9 @@ import ruamel.yaml
 
 from ClassicLib import GlobalRegistry, MessageTarget, msg_error
 from ClassicLib.Constants import SETTINGS_IGNORE_NONE, YAML
+from ClassicLib.FileIOCore import read_file_sync, write_file_sync
 from ClassicLib.Logger import logger
 from ClassicLib.Meta import SingletonMeta
-from ClassicLib.Util import open_file_with_encoding
 
 type YAMLLiteral = str | int | bool
 type YAMLSequence = list[str]
@@ -104,11 +105,11 @@ class YamlSettingsCache(metaclass=SingletonMeta):
         is_static = any(yaml_path == self.get_path_for_store(store) for store in self.STATIC_YAML_STORES)
 
         def cache_file(yaml_path_obj: Path) -> None:
-            with open_file_with_encoding(yaml_path_obj) as yaml_file:
-                yaml: ruamel.yaml.YAML = ruamel.yaml.YAML()
-                yaml.indent(offset=2)
-                yaml.width = 300
-                self.cache[yaml_path_obj] = yaml.load(yaml_file)
+            content = read_file_sync(yaml_path_obj)
+            yaml: ruamel.yaml.YAML = ruamel.yaml.YAML()
+            yaml.indent(offset=2)
+            yaml.width = 300
+            self.cache[yaml_path_obj] = yaml.load(StringIO(content))
 
         if is_static:
             # For static files, just load once
@@ -187,11 +188,12 @@ class YamlSettingsCache(metaclass=SingletonMeta):
             setting_container[keys[-1]] = new_value  # type: ignore[assignment]
 
             # Write changes back to the YAML file
-            with yaml_path.open("w", encoding="utf-8") as yaml_file:
-                yaml: ruamel.yaml.YAML = ruamel.yaml.YAML()
-                yaml.indent(offset=2)
-                yaml.width = 300
-                yaml.dump(data, yaml_file)
+            yaml: ruamel.yaml.YAML = ruamel.yaml.YAML()
+            yaml.indent(offset=2)
+            yaml.width = 300
+            output = StringIO()
+            yaml.dump(data, output)
+            write_file_sync(yaml_path, output.getvalue())
 
             # Update the cache
             self.cache[yaml_path] = data
@@ -275,6 +277,6 @@ def classic_settings[T](_type: type[T], setting: str) -> T | None:
         if not isinstance(default_settings, str):
             raise ValueError("Invalid Default Settings in 'CLASSIC Main.yaml'")
 
-        settings_path.write_text(default_settings, encoding="utf-8")
+        write_file_sync(settings_path, default_settings)
 
     return yaml_settings(_type, YAML.Settings, f"CLASSIC_Settings.{setting}")
