@@ -226,11 +226,11 @@ class FileIOCore:
         else:
             # Fallback to sync append in executor
             loop = asyncio.get_event_loop()
-            
+
             def append_sync():
                 with open(path, "a", encoding=self.default_encoding, errors=self.default_errors) as f:
                     f.write(content)
-            
+
             await loop.run_in_executor(None, append_sync)
 
     # ==========================================

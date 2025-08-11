@@ -8,7 +8,7 @@ from iniparse import configparser
 
 from ClassicLib import GlobalRegistry, msg_error, msg_info
 from ClassicLib.Constants import YAML
-from ClassicLib.FileIOCore import append_file_sync, read_file_sync, read_lines_sync, write_file_sync
+from ClassicLib.FileIOCore import append_file_sync, read_lines_sync, write_file_sync
 from ClassicLib.Logger import logger
 from ClassicLib.Util import remove_readonly
 from ClassicLib.YamlSettingsCache import classic_settings, yaml_settings
