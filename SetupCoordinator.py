@@ -6,8 +6,8 @@ from typing import TYPE_CHECKING, Any
 from ClassicLib import GlobalRegistry, MessageTarget, init_message_handler, msg_info, msg_success
 from ClassicLib.BackupManager import BackupManager
 from ClassicLib.Constants import YAML
-from ClassicLib.DocumentsChecker import DocumentsChecker
 from ClassicLib.DocsPath import docs_generate_paths, docs_path_find
+from ClassicLib.DocumentsChecker import DocumentsChecker
 from ClassicLib.FileGeneration import FileGenerator
 from ClassicLib.GameIntegrity import GameIntegrityChecker
 from ClassicLib.GamePath import game_generate_paths, game_path_find
@@ -17,7 +17,7 @@ from ClassicLib.Util import configure_logging
 from ClassicLib.XseCheck import xse_check_hashes, xse_check_integrity
 
 if TYPE_CHECKING:
-    from ClassicLib.YamlSettingsCache import YamlSettingsCache
+    from ClassicLib.YamlSettingsCache import YamlSettingsCache  # noqa: F401
 
 
 class SetupCoordinator:
@@ -45,7 +45,7 @@ class SetupCoordinator:
         Raises:
             TypeError: If the classic version or game name settings are not of type str.
         """
-        from ClassicLib.YamlSettingsCache import classic_settings, yaml_settings
+        from ClassicLib.YamlSettingsCache import classic_settings, yaml_settings  # noqa: F401
         
         # Configure logging
         configure_logging(logger)
@@ -112,7 +112,7 @@ class SetupCoordinator:
         Returns:
             A concatenated string containing the results of all executed checks.
         """
-        game_name: str = GlobalRegistry.get_game()
+        game_name: str = GlobalRegistry.get_game()  # noqa: F841
         
         # Run all checks and collect results
         combined_return: list[str] = []

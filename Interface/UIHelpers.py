@@ -6,7 +6,8 @@ This module contains utility methods for creating UI components and style defini
 
 from collections.abc import Callable
 
-from PySide6.QtCore import Qt
+from PySide6.QtCore import Qt, QUrl
+from PySide6.QtGui import QDesktopServices
 from PySide6.QtWidgets import (
     QBoxLayout,
     QCheckBox,
@@ -232,7 +233,7 @@ def add_bottom_button(layout: QLayout, text: str, callback: Callable[[], None], 
     layout.addWidget(button)
 
 
-def _create_button(self, text: str, tooltip: str, callback: Callable) -> QPushButton:
+def _create_button(self, text: str, tooltip: str, callback: Callable) -> QPushButton:  # noqa: ANN001, ARG001
     """
     Creates and configures a button with common styling and properties.
 
@@ -258,3 +259,12 @@ def _create_button(self, text: str, tooltip: str, callback: Callable) -> QPushBu
     button.setSizePolicy(QSizePolicy.Policy.Preferred, QSizePolicy.Policy.Fixed)
 
     return button
+
+def open_url(url: str) -> None:
+    """
+    Opens the specified URL in the default web browser.
+
+    Args:
+        url (str): The URL to open in the browser.
+    """
+    QDesktopServices.openUrl(QUrl(url))
