@@ -237,13 +237,14 @@ class FolderManagementMixin:
             file_path: Path to the file to open
         """
         notepadpp_path = Path("C:/Program Files/Notepad++/notepad++.exe")
+        file_url: QUrl = QUrl.fromLocalFile(str(file_path))
         
         if notepadpp_path.exists():
             try:
                 subprocess.Popen([str(notepadpp_path), str(file_path)])
             except (OSError, subprocess.SubprocessError):
                 # Fallback to system default
-                QDesktopServices.openUrl(QUrl.fromLocalFile(str(file_path)))
+                QDesktopServices.openUrl(file_url)
         else:
             # Use system default editor
-            QDesktopServices.openUrl(QUrl.fromLocalFile(str(file_path)))
+            QDesktopServices.openUrl(file_url)

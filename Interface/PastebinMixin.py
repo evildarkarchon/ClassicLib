@@ -1,12 +1,44 @@
-from PySide6.QtCore import QThread
-from PySide6.QtWidgets import QMessageBox, QVBoxLayout, QHBoxLayout, QLabel, QLineEdit, QPushButton
+import re
+from typing import TYPE_CHECKING, Any
 
-from ClassicLib.Interface.ThreadManager import ThreadType, get_thread_manager
+from PySide6.QtCore import QThread
+from PySide6.QtWidgets import QHBoxLayout, QLabel, QLineEdit, QMessageBox, QPushButton, QVBoxLayout
+
 from ClassicLib.Interface.Pastebin import PastebinFetchWorker
+from ClassicLib.Interface.ThreadManager import ThreadType
 from ClassicLib.Logger import logger
+
+if TYPE_CHECKING:
+    from ClassicLib.Interface.ThreadManager import ThreadManager
 
 
 class PastebinMixin:
+    """
+    Mixin class providing Pastebin log fetching functionality for the MainWindow.
+
+    This class requires the following attributes to be present in the class it's mixed into:
+    - thread_manager: ThreadManager instance
+    - pastebin_thread: QThread for Pastebin operations
+    - pastebin_worker: PastebinFetchWorker instance
+    - pastebin_id_input: QLineEdit for user input
+    - pastebin_label: QLabel for instructions
+    - pastebin_fetch_button: QPushButton for fetch action
+    """
+
+    # Type stubs for attributes that must be provided by the mixing class
+    if TYPE_CHECKING:
+        thread_manager: ThreadManager
+        pastebin_thread: QThread | None
+        pastebin_worker: PastebinFetchWorker | None
+        pastebin_id_input: QLineEdit
+        pastebin_label: QLabel
+        pastebin_fetch_button: QPushButton
+
+    def __init__(self, *args: Any, **kwargs: Any) -> None:
+        """Initialize the PastebinMixin with required patterns."""
+        super().__init__(*args, **kwargs)
+        self.pastebin_url_regex: re.Pattern = re.compile(r"^https?://pastebin\.com/(\w+)$")
+
     def setup_pastebin_elements(self, layout: QVBoxLayout) -> None:
         """
         Set up the UI elements to fetch logs from Pastebin and add them to the provided layout.
@@ -21,18 +53,18 @@ class PastebinMixin:
         """
         pastebin_layout: QHBoxLayout = QHBoxLayout()
 
-        self.pastebin_label = QLabel("PASTEBIN LOG FETCH", self)
+        self.pastebin_label = QLabel("PASTEBIN LOG FETCH")
         self.pastebin_label.setToolTip("Fetch a log file from Pastebin. Can be used more than once.")
         pastebin_layout.addWidget(self.pastebin_label)
 
         pastebin_layout.addSpacing(50)
 
-        self.pastebin_id_input = QLineEdit(self)
+        self.pastebin_id_input = QLineEdit()
         self.pastebin_id_input.setPlaceholderText("Enter Pastebin URL or ID")
         self.pastebin_id_input.setToolTip("Enter the Pastebin URL or ID to fetch the log. Can be used more than once.")
         pastebin_layout.addWidget(self.pastebin_id_input)
 
-        self.pastebin_fetch_button = QPushButton("Fetch Log", self)
+        self.pastebin_fetch_button = QPushButton("Fetch Log")
         self.pastebin_fetch_button.clicked.connect(self.fetch_pastebin_log)
         if self.pastebin_id_input:  # Ensure pastebin_id_input is not None
             self.pastebin_fetch_button.clicked.connect(self.pastebin_id_input.clear)
